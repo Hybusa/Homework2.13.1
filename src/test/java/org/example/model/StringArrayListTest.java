@@ -350,7 +350,7 @@ class StringArrayListTest {
     }
 
     @Test
-    void indexRemove_CorrectParams_ReturnsTrue() {
+    void contains_CorrectParams_ReturnsTrue() {
 
         String testString = "Test";
         String testString1 = "Test1";
@@ -587,8 +587,13 @@ class StringArrayListTest {
     }
 
     @Test
-    void testisEmpty_EmptyList() {
+    void isEmpty_EmptyList_ReturnsTrue() {
         assertTrue(stringArrayList.isEmpty());
+    }
+    @Test
+    void isEmpty_NonEmptyList_ReturnsFalse(){
+        stringArrayList.add("Test");
+        assertFalse(stringArrayList.isEmpty());
     }
 
     @Test
