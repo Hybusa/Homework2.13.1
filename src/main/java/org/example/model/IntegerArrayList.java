@@ -5,19 +5,26 @@ import org.example.exception.MyIndexOutOfBoundsException;
 import org.example.exception.NullParamException;
 
 import java.util.Arrays;
-import java.util.Random;
 
 public class IntegerArrayList implements IntegerList {
-    Integer[] integerArray = new Integer[0];
+    private Integer[] integerArray = new Integer[10];
+    private int size = 0;
 
     @Override
     public Integer add(Integer item) {
         if (item == null)
             throw new NullParamException("Null Param Accrued");
+        if (this.size == integerArray.length)
+            grow();
 
-        integerArray = Arrays.copyOf(integerArray, integerArray.length + 1);
-        integerArray[integerArray.length - 1] = item;
+        // integerArray = Arrays.copyOf(integerArray, integerArray.length + 1);
+        integerArray[this.size] = item;
+        this.size++;
         return item;
+    }
+
+    private void grow() {
+        integerArray = Arrays.copyOf(integerArray, integerArray.length + (integerArray.length / 2));
     }
 
     @Override
@@ -27,14 +34,16 @@ public class IntegerArrayList implements IntegerList {
         if (this.integerArray.length < 1) {
             throw new MyIndexOutOfBoundsException("Empty List");
         }
-        if (index > integerArray.length)
+        if (index > this.size)
             throw new MyIndexOutOfBoundsException("Index out of bounds");
-
-        integerArray = Arrays.copyOf(integerArray, integerArray.length + 1);
-        for (int i = integerArray.length - 1; i > index; i--) {
+        if (this.size == integerArray.length)
+            grow();
+        //integerArray = Arrays.copyOf(integerArray, integerArray.length + 1);
+        for (int i = this.size - 1; i > index; i--) {
             integerArray[i] = integerArray[i - 1];
         }
         integerArray[index] = item;
+        size++;
         return item;
     }
 
@@ -42,7 +51,7 @@ public class IntegerArrayList implements IntegerList {
     public Integer set(int index, Integer item) {
         if (item == null)
             throw new NullParamException("Null Param Occurred");
-        if (index >= integerArray.length)
+        if (index >= this.size)
             throw new MyIndexOutOfBoundsException("Index out of bounds");
 
         integerArray[index] = item;
@@ -59,29 +68,30 @@ public class IntegerArrayList implements IntegerList {
             throw new ElementNotFoundException("No such element");
         }
         Integer[] newArray = new Integer[this.integerArray.length - 1];
-        for (int i = 0, k = 0; i < this.integerArray.length; i++) {
+        for (int i = 0, k = 0; i < this.size; i++) {
             if (!this.integerArray[i].equals(item)) {
                 newArray[k] = this.integerArray[i];
                 k++;
             }
         }
         this.integerArray = newArray;
+        size--;
         return item;
     }
 
     @Override
     public Integer remove(int index) {
 
-        if (this.integerArray.length < 1)
+        if (this.size < 1)
             throw new MyIndexOutOfBoundsException("Index out of bounds, list is empty");
 
-        if (index >= this.integerArray.length)
+        if (index >= this.size)
             throw new MyIndexOutOfBoundsException("Out of bounds");
 
         Integer result = 0;
 
         Integer[] newArray = new Integer[this.integerArray.length - 1];
-        for (int i = 0, k = 0; i < this.integerArray.length; i++) {
+        for (int i = 0, k = 0; i < this.size; i++) {
             if (i != index) {
                 newArray[k] = this.integerArray[i];
                 k++;
@@ -90,18 +100,23 @@ public class IntegerArrayList implements IntegerList {
             }
         }
         this.integerArray = newArray;
+        size--;
         return result;
     }
 
 
     @Override
     public boolean contains(Integer item) {
-        return binarySearch(insertionSort(integerArray), item) != -1;
+        if (this.size < 1)
+            return false;
+        Integer[] sortArray = new Integer[this.size];
+        System.arraycopy(this.integerArray, 0, sortArray, 0, this.size);
+        return binarySearch(mergeSort(sortArray), item) != -1;
     }
 
     @Override
     public int indexOf(Integer item) {
-        for (int i = 0; i < this.integerArray.length; i++) {
+        for (int i = 0; i < this.size; i++) {
             if (this.integerArray[i].equals(item))
                 return i;
         }
@@ -110,7 +125,7 @@ public class IntegerArrayList implements IntegerList {
 
     @Override
     public int lastIndexOf(Integer item) {
-        for (int i = this.integerArray.length - 1; i >= 0; i--) {
+        for (int i = this.size - 1; i >= 0; i--) {
             if (this.integerArray[i].equals(item))
                 return i;
         }
@@ -119,7 +134,7 @@ public class IntegerArrayList implements IntegerList {
 
     @Override
     public Integer get(int index) {
-        if (this.integerArray.length < 1 || this.integerArray.length < index)
+        if (this.size < 1 || this.size < index)
             throw new MyIndexOutOfBoundsException("Index out of bounds");
         return this.integerArray[index];
     }
@@ -128,12 +143,12 @@ public class IntegerArrayList implements IntegerList {
     public boolean equals(IntegerArrayList otherList) {
         if (otherList == null)
             throw new NullParamException("Null param occurred");
-        if (this.integerArray.length != otherList.size())
+        if (this.size != otherList.size())
             return false;
 
         Integer[] tmpArray = otherList.toArray();
 
-        for (int i = 0; i < this.integerArray.length; i++) {
+        for (int i = 0; i < this.size; i++) {
             if (!this.integerArray[i].equals(tmpArray[i]))
                 return false;
         }
@@ -142,22 +157,23 @@ public class IntegerArrayList implements IntegerList {
 
     @Override
     public int size() {
-        return this.integerArray.length;
+        return this.size;
     }
 
     @Override
     public boolean isEmpty() {
-        return this.integerArray.length == 0;
+        return this.size == 0;
     }
 
     @Override
     public void clear() {
-        this.integerArray = new Integer[0];
+        this.integerArray = new Integer[10];
+        this.size = 0;
     }
 
     @Override
     public Integer[] toArray() {
-        Integer[] result = new Integer[this.integerArray.length];
+        Integer[] result = new Integer[size];
         System.arraycopy(this.integerArray, 0, result, 0, result.length);
         return result;
     }
@@ -171,7 +187,7 @@ public class IntegerArrayList implements IntegerList {
     }
 
 
-    public static void arraySortComparator() {
+/*    public static void arraySortComparator() {
 
         Random rd = new Random();
         Integer[] nums = new Integer[100000];
@@ -203,7 +219,7 @@ public class IntegerArrayList implements IntegerList {
         actualBubbleSort(nums.clone());
         //System.out.println(Arrays.toString(sortedArray));
 
-    }
+    }*/
 
     private static Integer[] selectionSort(Integer[] nums) {
 
@@ -292,7 +308,7 @@ public class IntegerArrayList implements IntegerList {
         return nums;
     }
 
-    private static Integer[] mergeSort(Integer[] nums) {
+    private Integer[] mergeSort(Integer[] nums) {
         if (nums.length == 1)
             return nums;
 
